@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport Quality Cross Training - WOD Timer</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary-blue: #0e2a47; /* Azul Marinho */
+            --secondary-red: #e31b23; /* Vermelho Esportivo */
+            --accent-blue: #1d4ed8;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --work-color: #10b981; /* Verde para Treino */
+            --rest-color: #e31b23; /* Vermelho para Descanso */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Header e Logo */
+        .header {
+            text-align: center;
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(14, 42, 71, 0.08);
+            border-top: 5px solid var(--secondary-red);
+        }
+
+        .logo {
+            max-width: 180px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        h2 {
+            color: var(--primary-blue);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(14, 42, 71, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Formulário */
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--primary-blue);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        input {
+            padding: 12px;
+            border-radius: 6px;
+            border: 2px solid #cbd5e1;
+            background-color: #f8fafc;
+            color: var(--text-dark);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .btn-add {
+            background-color: var(--secondary-red);
+            color: #ffffff;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .btn-add:hover {
+            background-color: #c4141b;
+        }
+
+        /* Timer Container */
+        .timer-card {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Timer Display Normal */
+        .timer-display {
+            text-align: center;
+            padding: 30px 10px;
+            border: 4px solid var(--primary-blue);
+            border-radius: 12px;
+            background-color: #f8fafc;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .timer-display.work {
+            border-color: var(--work-color);
+            background-color: #f0fdf4;
+        }
+
+        .timer-display.rest {
+            border-color: var(--rest-color);
+            background-color: #fef2f2;
+        }
+
+        .status-badge {
+            font-size: 1.3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: var(--primary-blue);
+        }
+
+        .status-badge.work { color: var(--work-color); }
+        .status-badge.rest { color: var(--rest-color); }
+
+        .time-left {
+            font-size: 5rem;
+            font-weight: 900;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 5px 0;
+            color: var(--primary-blue);
+        }
+
+        .current-info {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-start { background-color: var(--primary-blue); color: #fff; flex: 2; min-width: 120px; }
+        .btn-start:hover { background-color: #081a2d; }
+
+        .btn-pause { background-color: #f59e0b; color: #fff; flex: 1; min-width: 100px; }
+        .btn-pause:hover { background-color: #d97706; }
+
+        .btn-reset { background-color: var(--secondary-red); color: #fff; flex: 1; min-width: 100px; }
+        .btn-reset:hover { background-color: #c4141b; }
+
+        .btn-fullscreen {
+            background-color: #334155;
+            color: #fff;
+            flex: 1;
+            min-width: 130px;
+        }
+        .btn-fullscreen:hover { background-color: #1e293b; }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ESTILOS DE TELA CHEIA (FULLSCREEN) */
+        .timer-card:fullscreen {
+            background-color: #000000;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            border-radius: 0;
+        }
+
+        .timer-card:fullscreen .timer-display {
+            width: 90%;
+            max-width: 1200px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-width: 10px;
+            background-color: #111827;
+        }
+
+        .timer-card:fullscreen .time-left {
+            font-size: 15vw;
+            line-height: 1;
+            color: #ffffff;
+        }
+
+        .timer-card:fullscreen .status-badge {
+            font-size: 4vw;
+            margin-bottom: 20px;
+        }
+
+        .timer-card:fullscreen .current-info {
+            font-size: 2.5vw;
+            color: #e2e8f0;
+        }
+
+        .timer-card:fullscreen .timer-controls {
+            width: 90%;
+            max-width: 1200px;
+            margin-top: 25px;
+        }
+
+        .timer-card:fullscreen button {
+            padding: 20px;
+            font-size: 1.5rem;
+        }
+
+        /* Lista de Exercícios */
+        .exercise-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .exercise-item {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid var(--primary-blue);
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exercise-info h4 {
+            color: var(--primary-blue);
+            font-size: 1.05rem;
+        }
+
+        .exercise-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .btn-delete {
+            background-color: transparent;
+            color: var(--secondary-red);
+            border: 1px solid var(--secondary-red);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .btn-delete:hover {
+            background-color: var(--secondary-red);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header com Logo -->
+        <div class="header">
+            <img src="logo.png" alt="Sport Quality Cross Training Logo" class="logo" onerror="this.style.display='none'">
+            <h1>WOD Timer & Programação</h1>
+        </div>
+
+        <!-- Formulário de Cadastro -->
+        <div class="card">
+            <h2>Cadastrar Exercício</h2>
+            <form id="exercise-form">
+                <div class="input-field" style="margin-top: 15px;">
+                    <label for="name">Nome do Exercício</label>
+                    <input type="text" id="name" placeholder="Ex: Clean & Jerk, Box Jump" required>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-field">
+                        <label for="reps">Repetições</label>
+                        <input type="number" id="reps" min="1" placeholder="Ex: 12" required>
+                    </div>
+                    <div class="input-field">
+                        <label for="work-time">Execução (Segundos)</label>
+                        <input type="number" id="work-time" min="1" placeholder="Ex: 45" required>
+                    </div>
+                    <div class="input-field">
+                        <label for="rest-time">Descanso (Segundos)</label>
+                        <input type="number" id="rest-time" min="0" placeholder="Ex: 15" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-add">Adicionar ao Treino</button>
+            </form>
+        </div>
+
+        <!-- Cronômetro Display -->
+        <div class="card timer-card" id="timer-container">
+            <h2>Timer de Treino</h2>
+            
+            <div class="timer-display" id="timer-display">
+                <div class="status-badge" id="status-badge">Aguardando Início</div>
+                <div class="time-left" id="time-left">00:00</div>
+                <div class="current-info" id="current-info">Cadastre e inicie seu WOD</div>
+            </div>
+
+            <div class="timer-controls">
+                <button class="btn-start" id="start-btn">Iniciar</button>
+                <button class="btn-pause" id="pause-btn" disabled>Pausar</button>
+                <button class="btn-reset" id="reset-btn">Resetar</button>
+                <button class="btn-fullscreen" id="fullscreen-btn">⛶ Tela Cheia</button>
+            </div>
+        </div>
+
+        <!-- Lista de Treinos -->
+        <div class="card">
+            <h2>Sequência do Treino</h2>
+            <ul class="exercise-list" id="exercise-list">
+                <!-- Exercícios inseridos dinamicamente -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Estado da Aplicação
+        let exercises = [];
+        let currentExerciseIndex = 0;
+        let isWorkingPhase = true; 
+        let timeRemaining = 0;
+        let timerInterval = null;
+        let isRunning = false;
+
+        // Elementos do DOM
+        const form = document.getElementById('exercise-form');
+        const listEl = document.getElementById('exercise-list');
+        const displayEl = document.getElementById('timer-display');
+        const statusBadge = document.getElementById('status-badge');
+        const timeLeftEl = document.getElementById('time-left');
+        const currentInfoEl = document.getElementById('current-info');
+        const timerContainer = document.getElementById('timer-container');
+        
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        // Bip Curto (Para a contagem nos últimos 3, 2, 1)
+        function playShortBeep() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 600;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.12);
+                osc.stop(audioCtx.currentTime + 0.12);
+            } catch (e) {
+                console.log("Áudio bloqueado pelo navegador.");
+            }
+        }
+
+        // AVISO SONORO DE CHEGADA AO 0 (Apito Triplo Forte)
+        function playZeroAlert() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Três apitos graves e intensos em sequência rápida
+                [0, 0.18, 0.36].forEach((delay) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sawtooth'; // Onda tipo "dente de serra" - som mais cortante estilo alarme
+                    osc.frequency.value = 880; // Nota Lá (A5)
+                    
+                    gain.gain.setValueAtTime(0.5, audioCtx.currentTime + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delay + 0.15);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(audioCtx.currentTime + delay);
+                    osc.stop(audioCtx.currentTime + delay + 0.15);
+                });
+            } catch (e) {
+                console.log("Áudio bloqueado pelo navegador.");
+            }
+        }
+
+        // Adicionar Exercício
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const newExercise = {
+                id: Date.now(),
+                name: document.getElementById('name').value,
+                reps: parseInt(document.getElementById('reps').value),
+                workTime: parseInt(document.getElementById('work-time').value),
+                restTime: parseInt(document.getElementById('rest-time').value)
+            };
+
+            exercises.push(newExercise);
+            renderList();
+            form.reset();
+
+            if (exercises.length === 1 && !isRunning) {
+                resetTimer();
+            }
+        });
+
+        // Renderizar Lista
+        function renderList() {
+            listEl.innerHTML = '';
+            exercises.forEach((ex, index) => {
+                const li = document.createElement('li');
+                li.className = 'exercise-item';
+                li.innerHTML = `
+                    <div class="exercise-info">
+                        <h4>${index + 1}. ${ex.name} (${ex.reps} reps)</h4>
+                        <p>Treino: ${ex.workTime}s | Descanso: ${ex.restTime}s</p>
+                    </div>
+                    <button class="btn-delete" onclick="deleteExercise(${ex.id})">Remover</button>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        // Deletar Exercício
+        window.deleteExercise = function(id) {
+            exercises = exercises.filter(ex => ex.id !== id);
+            renderList();
+            if (!isRunning) resetTimer();
+        };
+
+        // Formatar tempo em MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Atualizar Timer na Tela
+        function updateDisplay() {
+            timeLeftEl.textContent = formatTime(timeRemaining);
+            
+            if (exercises.length === 0) {
+                statusBadge.textContent = "Aguardando Início";
+                statusBadge.className = "status-badge";
+                currentInfoEl.textContent = "Cadastre e inicie seu WOD";
+                displayEl.className = "timer-display";
+                return;
+            }
+
+            const currentEx = exercises[currentExerciseIndex];
+
+            if (isWorkingPhase) {
+                statusBadge.textContent = "VAI! (EXERCÍCIO)";
+                statusBadge.className = "status-badge work";
+                displayEl.className = "timer-display work";
+                currentInfoEl.textContent = `Exercício ${currentExerciseIndex + 1}/${exercises.length}: ${currentEx.name} (${currentEx.reps} Repetições)`;
+            } else {
+                statusBadge.textContent = "DESCANSO";
+                statusBadge.className = "status-badge rest";
+                displayEl.className = "timer-display rest";
+                currentInfoEl.textContent = `Próximo: ${exercises[currentExerciseIndex + 1] ? exercises[currentExerciseIndex + 1].name : 'Fim do Treino'}`;
+            }
+        }
+
+        // Lógica Principal do Cronômetro
+        function tick() {
+            if (timeRemaining > 0) {
+                // Bips avisando os últimos 3 segundos
+                if (timeRemaining <= 3) {
+                    playShortBeep();
+                }
+                timeRemaining--;
+                updateDisplay();
+            } else {
+                // CHEGOU NO 0! -> Toca o alarme sonoro
+                playZeroAlert();
+
+                if (isWorkingPhase) {
+                    if (exercises[currentExerciseIndex].restTime > 0) {
+                        isWorkingPhase = false;
+                        timeRemaining = exercises[currentExerciseIndex].restTime;
+                    } else {
+                        nextExercise();
+                    }
+                } else {
+                    nextExercise();
+                }
+                updateDisplay();
+            }
+        }
+
+        function nextExercise() {
+            currentExerciseIndex++;
+            if (currentExerciseIndex < exercises.length) {
+                isWorkingPhase = true;
+                timeRemaining = exercises[currentExerciseIndex].workTime;
+            } else {
+                // Treino Concluído
+                clearInterval(timerInterval);
+                isRunning = false;
+                statusBadge.textContent = "WOD FINALIZADO!";
+                statusBadge.className = "status-badge work";
+                currentInfoEl.textContent = "Parabéns, treino concluído com sucesso!";
+                timeLeftEl.textContent = "00:00";
+                displayEl.className = "timer-display";
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+            }
+        }
+
+        // Eventos dos Botões
+        startBtn.addEventListener('click', () => {
+            if (exercises.length === 0) {
+                alert("Adicione pelo menos um exercício para começar!");
+                return;
+            }
+
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+
+                if (timeRemaining === 0 && currentExerciseIndex === 0) {
+                    timeRemaining = exercises[0].workTime;
+                    isWorkingPhase = true;
+                }
+
+                updateDisplay();
+                timerInterval = setInterval(tick, 1000);
+            }
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                statusBadge.textContent = "PAUSADO";
+            }
+        });
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            currentExerciseIndex = 0;
+            isWorkingPhase = true;
+            
+            if (exercises.length > 0) {
+                timeRemaining = exercises[0].workTime;
+            } else {
+                timeRemaining = 0;
+            }
+
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            updateDisplay();
+        }
+
+        resetBtn.addEventListener('click', resetTimer);
+
+        // Tela Cheia
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (timerContainer.requestFullscreen) {
+                    timerContainer.requestFullscreen();
+                } else if (timerContainer.webkitRequestFullscreen) {
+                    timerContainer.webkitRequestFullscreen();
+                } else if (timerContainer.msRequestFullscreen) {
+                    timerContainer.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.textContent = '✖ Sair da Tela Cheia';
+            } else {
+                fullscreenBtn.textContent = '⛶ Tela Cheia';
+            }
+        });
+
+        // Inicialização
+        updateDisplay();
+    </script>
+</body>
+</html>
